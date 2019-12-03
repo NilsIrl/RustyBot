@@ -11,3 +11,5 @@ So on docker, the port 8000 inside the container needs to be forwarded to the
 host. In the Event API settings on the slack interface, the event
 `member_joined_channel` needs to be subscribed to, and the request URL needs to
 be set to that of the bot.
+
+The environment variable `SLACK_TOKEN` needs to be set to the Oauth token.
