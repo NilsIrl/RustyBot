@@ -16,16 +16,17 @@ struct PostMessageRequest<'a> {
 }
 
 #[derive(serde::Deserialize)]
-struct Event {
+struct Event<'a> {
     user: String,
     channel: String,
+    r#type: &'a str,
 }
 
 #[derive(serde::Deserialize)]
 #[serde(untagged)]
-enum EventRequest {
+enum EventRequest<'a> {
     ChallengeRequest { r#type: String, challenge: String },
-    MemberJoinedChannelRequest { r#type: String, event: Event },
+    MemberJoinedChannelRequest { r#type: &'a str, event: Event<'a> },
 }
 
 #[derive(rocket::response::Responder)]
@@ -44,12 +45,18 @@ fn event(request: rocket_contrib::json::Json<EventRequest>) -> EventResponse {
         }
         EventRequest::MemberJoinedChannelRequest {
             // Is this really the best event to be subscribed to? `team_join` might be interesting as well.
-            event: Event { user, channel },
+            event:
+                Event {
+                    user,
+                    channel,
+                    r#type: "member_joined_channel",
+                },
             ..
         } => {
             welcome_user(user, channel);
             EventResponse::Status(rocket::http::Status::Ok)
         }
+        EventRequest::MemberJoinedChannelRequest { .. } => unreachable!(),
     }
 }
 
