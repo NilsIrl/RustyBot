@@ -13,3 +13,14 @@ host. In the Event API settings on the slack interface, the event
 be set to that of the bot.
 
 The environment variable `SLACK_TOKEN` needs to be set to the Oauth token.
+
+## Example
+
+```sh
+$ git clone https://github.com/NilsIrl/RustyBot.git && cd RustyBot
+$ docker build -t rusty-bot .
+$ docker container run -d -p 80:8000 -e SLACK_TOKEN=<token> rusty-bot
+```
+
+In the above example the port exposed to the internet, on the host, is the port
+`80`.
