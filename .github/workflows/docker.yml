@@ -1,0 +1,21 @@
+name: Docker
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+env:
+  IMAGE_LOCATION: "docker.pkg.github.com/${{ github.repository }}/rustybot:latest"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build image
+        run: docker build --tag "${IMAGE_LOCATION,,}" .
+      - name: Log into registry
+        run: docker login --username="${{ github.actor }}" --password="${{ secrets.GITHUB_TOKEN }}" docker.pkg.github.com
+        if: github.event_name == 'push'
+      - name: Push image
+        run: docker push "${IMAGE_LOCATION,,}"
+        if: github.event_name == 'push'
