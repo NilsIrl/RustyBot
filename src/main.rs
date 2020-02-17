@@ -61,7 +61,7 @@ fn event(request: rocket_contrib::json::Json<EventRequest>) -> EventResponse {
 }
 
 fn welcome_user(user: &str, channel: &str) {
-    let client = reqwest::Client::new(); // TODO: create client elsewhere
+    let client = reqwest::blocking::Client::new(); // TODO: create client elsewhere
     client
         .post("https://slack.com/api/chat.postMessage")
         .bearer_auth(&*TOKEN)
