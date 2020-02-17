@@ -13,6 +13,7 @@ struct ChallengeResponse {
 struct PostMessageRequest<'a> {
     channel: &'a str,
     text: String,
+    as_user: bool,
 }
 
 #[derive(serde::Deserialize)]
@@ -67,7 +68,8 @@ fn welcome_user(user: &str, channel: &str) {
         .bearer_auth(&*TOKEN)
         .json(&PostMessageRequest {
             channel: &channel,
-            text: format!("Hello <@{}>, welcome!!!", user),
+            text: format!("Hello <@{}>, welcome!!! :wave:", user),
+            as_user: true,
         })
         .send()
         .unwrap();
