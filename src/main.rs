@@ -1,9 +1,5 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-lazy_static::lazy_static! {
-    static ref TOKEN: String = std::env::var("SLACK_TOKEN").unwrap(); // Would use state rather than lazy_static be better?
-}
-
 #[derive(serde::Serialize)]
 struct ChallengeResponse {
     challenge: String,
@@ -37,7 +33,10 @@ enum EventResponse {
 }
 
 #[rocket::post("/", data = "<request>")]
-fn event(request: rocket_contrib::json::Json<EventRequest>) -> EventResponse {
+fn event(
+    request: rocket_contrib::json::Json<EventRequest>,
+    token: rocket::State<String>,
+) -> EventResponse {
     match &*request {
         EventRequest::ChallengeRequest { challenge, .. } => {
             EventResponse::Challenge(rocket_contrib::json::Json(ChallengeResponse {
@@ -54,18 +53,18 @@ fn event(request: rocket_contrib::json::Json<EventRequest>) -> EventResponse {
                 },
             ..
         } => {
-            welcome_user(user, channel);
+            welcome_user(user, channel, &*token);
             EventResponse::Status(rocket::http::Status::Ok)
         }
         EventRequest::MemberJoinedChannelRequest { .. } => unreachable!(),
     }
 }
 
-fn welcome_user(user: &str, channel: &str) {
+fn welcome_user(user: &str, channel: &str, token: &String) {
     let client = reqwest::blocking::Client::new(); // TODO: create client elsewhere
     client
         .post("https://slack.com/api/chat.postMessage")
-        .bearer_auth(&*TOKEN)
+        .bearer_auth(token)
         .json(&PostMessageRequest {
             channel: &channel,
             text: format!("Hello <@{}>, welcome!!! :wave:", user),
@@ -76,5 +75,9 @@ fn welcome_user(user: &str, channel: &str) {
 }
 
 fn main() {
-    rocket::ignite().mount("/", rocket::routes![event]).launch();
+    let token = std::env::var("SLACK_TOKEN").unwrap();
+    rocket::ignite()
+        .manage(token)
+        .mount("/", rocket::routes![event])
+        .launch();
 }
