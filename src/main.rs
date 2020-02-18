@@ -25,50 +25,40 @@ struct Event<'a> {
 }
 
 #[derive(serde::Deserialize)]
-#[serde(untagged)]
-enum EventRequest<'a> {
-    ChallengeRequest { r#type: String, challenge: String },
-    MemberJoinedChannelRequest { r#type: &'a str, event: Event<'a> },
+struct ChallengeRequest<'a> {
+    r#type: &'a str,
+    challenge: &'a str,
 }
 
-#[derive(rocket::response::Responder)]
-enum EventResponse {
-    Challenge(rocket_contrib::json::Json<ChallengeResponse>),
-    Status(rocket::http::Status),
+#[derive(serde::Deserialize)]
+struct MemberJoinedChannelRequest<'a> {
+    r#type: &'a str,
+    event: Event<'a>,
 }
 
 #[rocket::post("/", data = "<request>")]
-fn event<'a>(
-    request: rocket_contrib::json::Json<EventRequest<'a>>,
+fn member_joined_channel(
+    request: rocket_contrib::json::Json<MemberJoinedChannelRequest>,
     sender: rocket::State<crossbeam_channel::Sender<PostMessage>>,
-) -> EventResponse {
-    match &*request {
-        EventRequest::ChallengeRequest { challenge, .. } => {
-            EventResponse::Challenge(rocket_contrib::json::Json(ChallengeResponse {
-                challenge: challenge.to_string(),
-            }))
-        }
-        EventRequest::MemberJoinedChannelRequest {
-            // Is this really the best event to be subscribed to? `team_join` might be interesting as well.
-            event:
-                Event {
-                    user,
-                    channel,
-                    r#type: "member_joined_channel",
-                },
-            ..
-        } => {
-            sender
-                .inner()
-                .send(PostMessage {
-                    channel: channel.clone(),
-                    user: user.clone(),
-                })
-                .unwrap();
-            EventResponse::Status(rocket::http::Status::Ok)
-        }
-        EventRequest::MemberJoinedChannelRequest { .. } => unreachable!(),
-    }
+) {
+    // TODO: Check that the type is indeed "member_joined_channel" earlier
+    assert_eq!(request.r#type, "member_joined_channel");
+    sender
+        .inner()
+        .send(PostMessage {
+            channel: request.event.channel.clone(),
+            user: request.event.user.clone(),
+        })
+        .unwrap();
+}
+
+#[rocket::post("/", data = "<request>")]
+fn challenge(
+    request: rocket_contrib::json::Json<ChallengeRequest>,
+) -> rocket_contrib::json::Json<ChallengeResponse> {
+    rocket_contrib::json::Json(ChallengeResponse {
+        challenge: request.challenge.to_string(),
+    })
 }
 
 fn main() {
@@ -93,6 +83,6 @@ fn main() {
     });
     rocket::ignite()
         .manage(s)
-        .mount("/", rocket::routes![event])
+        .mount("/", rocket::routes![member_joined_channel, challenge])
         .launch();
 }
