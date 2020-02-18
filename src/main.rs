@@ -5,10 +5,15 @@ struct ChallengeResponse {
     challenge: String,
 }
 
+struct PostMessage {
+    channel: String,
+    user: String,
+}
+
 #[derive(serde::Serialize)]
 struct PostMessageRequest<'a> {
     channel: &'a str,
-    text: String,
+    text: &'a str,
     as_user: bool,
 }
 
@@ -33,9 +38,9 @@ enum EventResponse {
 }
 
 #[rocket::post("/", data = "<request>")]
-fn event(
-    request: rocket_contrib::json::Json<EventRequest>,
-    token: rocket::State<String>,
+fn event<'a>(
+    request: rocket_contrib::json::Json<EventRequest<'a>>,
+    sender: rocket::State<crossbeam_channel::Sender<PostMessage>>,
 ) -> EventResponse {
     match &*request {
         EventRequest::ChallengeRequest { challenge, .. } => {
@@ -53,31 +58,41 @@ fn event(
                 },
             ..
         } => {
-            welcome_user(user, channel, &*token);
+            sender
+                .inner()
+                .send(PostMessage {
+                    channel: channel.clone(),
+                    user: user.clone(),
+                })
+                .unwrap();
             EventResponse::Status(rocket::http::Status::Ok)
         }
         EventRequest::MemberJoinedChannelRequest { .. } => unreachable!(),
     }
 }
 
-fn welcome_user(user: &str, channel: &str, token: &String) {
-    let client = reqwest::blocking::Client::new(); // TODO: create client elsewhere
-    client
-        .post("https://slack.com/api/chat.postMessage")
-        .bearer_auth(token)
-        .json(&PostMessageRequest {
-            channel: &channel,
-            text: format!("Hello <@{}>, welcome!!! :wave:", user),
-            as_user: true,
-        })
-        .send()
-        .unwrap();
-}
-
 fn main() {
+    let (s, r): (
+        crossbeam_channel::Sender<PostMessage>,
+        crossbeam_channel::Receiver<PostMessage>,
+    ) = crossbeam_channel::unbounded();
+    let client = reqwest::blocking::Client::new();
     let token = std::env::var("SLACK_TOKEN").unwrap();
+    std::thread::spawn(move || loop {
+        let post_message = r.recv().unwrap();
+        client
+            .post("https://slack.com/api/chat.postMessage")
+            .bearer_auth(&token)
+            .json(&PostMessageRequest {
+                channel: &post_message.channel,
+                text: &format!("Hello <@{}>, welcome!!! :wave:", post_message.user),
+                as_user: true,
+            })
+            .send()
+            .unwrap();
+    });
     rocket::ignite()
-        .manage(token)
+        .manage(s)
         .mount("/", rocket::routes![event])
         .launch();
 }
