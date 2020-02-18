@@ -72,12 +72,16 @@ fn event<'a>(
 }
 
 fn main() {
+    const TOKEN_ENVIRONMENT_VARIABLE: &str = "SLACK_TOKEN";
     let (s, r): (
         crossbeam_channel::Sender<PostMessage>,
         crossbeam_channel::Receiver<PostMessage>,
     ) = crossbeam_channel::unbounded();
     let client = reqwest::blocking::Client::new();
-    let token = std::env::var("SLACK_TOKEN").unwrap();
+    let token = std::env::var(TOKEN_ENVIRONMENT_VARIABLE).expect(&format!(
+        "Environment variable {}",
+        TOKEN_ENVIRONMENT_VARIABLE,
+    ));
     std::thread::spawn(move || loop {
         let post_message = r.recv().unwrap();
         client
