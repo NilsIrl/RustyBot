@@ -827,7 +827,7 @@ dependencies = [
 
 [[package]]
 name = "rocket_contrib"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -883,7 +883,7 @@ dependencies = [
  "crossbeam-channel 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rocket 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rocket_contrib 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rocket_contrib 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1480,7 +1480,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum ring 0.16.11 (registry+https://github.com/rust-lang/crates.io-index)" = "741ba1704ae21999c00942f9f5944f801e977f54302af346b596287599ad1862"
 "checksum rocket 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0aa9ab5fad4a9b366ae884f5b5461e166fe8f94d23a561a91dfaab046c2f4fde"
 "checksum rocket_codegen 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "c56c540f73ae2291e8c1e4f9757f92fec7015c09fd90d7bb70349386a111602c"
-"checksum rocket_contrib 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e0fa5c1392135adc0f96a02ba150ac4c765e27c58dbfd32aa40678e948f6e56f"
+"checksum rocket_contrib 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "66926894ef94396204c53885f54a1b0e94a88ce6c9478c2fd403261fc0efb523"
 "checksum rocket_http 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "968a07cbfa9f8c8a0239aba359b80e1281e85da9415795c68f3ddeb5e1d636d6"
 "checksum rustls 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c0d4a31f5d68413404705d6982529b0e11a9aacd4839d1d6222ee3b8cb4015e1"
 "checksum rustls-native-certs 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a75ffeb84a6bd9d014713119542ce415db3a3e4748f0bfce1e1416cd224a23a5"
